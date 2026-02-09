@@ -22,6 +22,7 @@ require_once AIS_PLUGIN_DIR . 'includes/class-predictions-handler.php';
 require_once AIS_PLUGIN_DIR . 'includes/class-replicate-api.php';
 require_once AIS_PLUGIN_DIR . 'includes/class-admin-page.php';
 require_once AIS_PLUGIN_DIR . 'includes/class-ajax-handler.php';
+require_once AIS_PLUGIN_DIR . 'includes/class-shortcode.php';
 
 /**
  * Main plugin class
@@ -33,6 +34,7 @@ class AI_Influencer_Studio {
     private $ajax_handler;
     private $replicate_api;
     private $predictions_handler;
+    private $shortcode;
     
     public static function get_instance() {
         if (null === self::$instance) {
@@ -46,6 +48,7 @@ class AI_Influencer_Studio {
         $this->replicate_api = new AIS_Replicate_API($this->predictions_handler);
         $this->admin_page = new AIS_Admin_Page($this->replicate_api);
         $this->ajax_handler = new AIS_Ajax_Handler($this->replicate_api, $this->predictions_handler);
+        $this->shortcode = new AIS_Shortcode();
         
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
     }

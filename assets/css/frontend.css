@@ -1,0 +1,648 @@
+/* AI Influencer Studio - Frontend Styles (Mobile-First) */
+
+/* Reset & Base */
+.ais-frontend-app {
+    --ais-primary: #6366f1;
+    --ais-primary-dark: #4f46e5;
+    --ais-primary-light: #818cf8;
+    --ais-success: #10b981;
+    --ais-error: #ef4444;
+    --ais-warning: #f59e0b;
+    --ais-gray-50: #f9fafb;
+    --ais-gray-100: #f3f4f6;
+    --ais-gray-200: #e5e7eb;
+    --ais-gray-300: #d1d5db;
+    --ais-gray-400: #9ca3af;
+    --ais-gray-500: #6b7280;
+    --ais-gray-600: #4b5563;
+    --ais-gray-700: #374151;
+    --ais-gray-800: #1f2937;
+    --ais-gray-900: #111827;
+    --ais-radius: 12px;
+    --ais-radius-sm: 8px;
+    --ais-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --ais-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ais-gray-800);
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.ais-frontend-app *, 
+.ais-frontend-app *::before, 
+.ais-frontend-app *::after {
+    box-sizing: border-box;
+}
+
+/* Error State */
+.ais-frontend-error {
+    padding: 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--ais-radius-sm);
+    color: var(--ais-error);
+    text-align: center;
+}
+
+.ais-frontend-error a {
+    color: var(--ais-error);
+    font-weight: 600;
+}
+
+/* Tab Navigation */
+.ais-tabs-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 4px;
+    background: var(--ais-gray-100);
+    border-radius: var(--ais-radius);
+}
+
+.ais-tab-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    border-radius: var(--ais-radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ais-gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ais-tab-btn.active {
+    background: white;
+    color: var(--ais-primary);
+    box-shadow: var(--ais-shadow);
+}
+
+/* Step Indicator */
+.ais-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 8px;
+}
+
+.ais-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    position: relative;
+}
+
+.ais-step::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: calc(50% + 16px);
+    width: calc(100% - 32px);
+    height: 2px;
+    background: var(--ais-gray-200);
+}
+
+.ais-step:last-child::after {
+    display: none;
+}
+
+.ais-step.active::after,
+.ais-step.completed::after {
+    background: var(--ais-primary);
+}
+
+.ais-step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ais-gray-200);
+    color: var(--ais-gray-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.ais-step.active .ais-step-number {
+    background: var(--ais-primary);
+    color: white;
+}
+
+.ais-step.completed .ais-step-number {
+    background: var(--ais-success);
+    color: white;
+}
+
+.ais-step-label {
+    font-size: 11px;
+    color: var(--ais-gray-400);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ais-step.active .ais-step-label,
+.ais-step.completed .ais-step-label {
+    color: var(--ais-gray-700);
+}
+
+/* Cards / Sections */
+.ais-card {
+    background: white;
+    border-radius: var(--ais-radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--ais-shadow);
+}
+
+.ais-card-title {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ais-gray-800);
+}
+
+/* Image Upload Grid - Mobile First (stacked) */
+.ais-upload-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Image Upload Component */
+.ais-upload-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ais-upload-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ais-gray-700);
+}
+
+.ais-upload-box {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px dashed var(--ais-gray-300);
+    border-radius: var(--ais-radius);
+    background: var(--ais-gray-50);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.ais-upload-box:active {
+    transform: scale(0.98);
+}
+
+.ais-upload-box.has-image {
+    border-style: solid;
+    border-color: var(--ais-primary);
+}
+
+.ais-upload-box img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ais-upload-icon {
+    width: 40px;
+    height: 40px;
+    stroke: var(--ais-gray-400);
+}
+
+.ais-upload-text {
+    font-size: 13px;
+    color: var(--ais-gray-500);
+}
+
+.ais-upload-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.ais-upload-remove svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+}
+
+/* Form Controls */
+.ais-form-group {
+    margin-bottom: 16px;
+}
+
+.ais-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ais-gray-700);
+    margin-bottom: 8px;
+}
+
+.ais-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--ais-gray-300);
+    border-radius: var(--ais-radius-sm);
+    background: white;
+    font-size: 16px;
+    color: var(--ais-gray-800);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+
+.ais-select:focus {
+    outline: none;
+    border-color: var(--ais-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.ais-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--ais-gray-300);
+    border-radius: var(--ais-radius-sm);
+    background: white;
+    font-size: 16px;
+    color: var(--ais-gray-800);
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.ais-textarea:focus {
+    outline: none;
+    border-color: var(--ais-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Buttons */
+.ais-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 24px;
+    border: none;
+    border-radius: var(--ais-radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ais-btn:active {
+    transform: scale(0.98);
+}
+
+.ais-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ais-btn-primary {
+    background: var(--ais-primary);
+    color: white;
+}
+
+.ais-btn-primary:hover:not(:disabled) {
+    background: var(--ais-primary-dark);
+}
+
+.ais-btn-secondary {
+    background: var(--ais-gray-100);
+    color: var(--ais-gray-700);
+}
+
+.ais-btn-secondary:hover:not(:disabled) {
+    background: var(--ais-gray-200);
+}
+
+.ais-btn-success {
+    background: var(--ais-success);
+    color: white;
+}
+
+.ais-btn-outline {
+    background: transparent;
+    border: 2px solid var(--ais-gray-300);
+    color: var(--ais-gray-700);
+}
+
+.ais-btn-outline:hover:not(:disabled) {
+    border-color: var(--ais-primary);
+    color: var(--ais-primary);
+}
+
+/* Button Row */
+.ais-btn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+/* Spinner */
+.ais-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ais-spin 0.75s linear infinite;
+}
+
+@keyframes ais-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Pose Selector */
+.ais-pose-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ais-pose-item {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: var(--ais-gray-50);
+    border: 2px solid var(--ais-gray-200);
+    border-radius: var(--ais-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ais-pose-item:active {
+    transform: scale(0.98);
+}
+
+.ais-pose-item.selected {
+    background: #eef2ff;
+    border-color: var(--ais-primary);
+}
+
+.ais-pose-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ais-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ais-pose-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ais-gray-700);
+}
+
+.ais-pose-edit {
+    margin-top: 16px;
+}
+
+/* Result Display */
+.ais-result-container {
+    text-align: center;
+}
+
+.ais-result-image {
+    width: 100%;
+    border-radius: var(--ais-radius);
+    overflow: hidden;
+    box-shadow: var(--ais-shadow-lg);
+    margin-bottom: 20px;
+}
+
+.ais-result-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Notice/Alert */
+.ais-notice {
+    padding: 14px 16px;
+    border-radius: var(--ais-radius-sm);
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ais-notice-error {
+    background: #fef2f2;
+    color: var(--ais-error);
+    border: 1px solid #fecaca;
+}
+
+.ais-notice-success {
+    background: #ecfdf5;
+    color: var(--ais-success);
+    border: 1px solid #a7f3d0;
+}
+
+.ais-notice-dismiss {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.ais-notice-dismiss:hover {
+    opacity: 1;
+}
+
+/* Model Sections (Dual Mode) */
+.ais-model-section {
+    padding: 16px;
+    background: var(--ais-gray-50);
+    border-radius: var(--ais-radius);
+    margin-bottom: 16px;
+}
+
+.ais-model-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ais-gray-600);
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Settings Row */
+.ais-settings-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* TABLET & DESKTOP RESPONSIVE */
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+    .ais-frontend-app {
+        max-width: 720px;
+        padding: 24px;
+    }
+    
+    .ais-upload-grid {
+        flex-direction: row;
+    }
+    
+    .ais-upload-item {
+        flex: 1;
+    }
+    
+    .ais-settings-row {
+        flex-direction: row;
+    }
+    
+    .ais-settings-row .ais-form-group {
+        flex: 1;
+        margin-bottom: 0;
+    }
+    
+    .ais-btn-row {
+        flex-direction: row;
+    }
+    
+    .ais-btn-row .ais-btn {
+        flex: 1;
+    }
+    
+    .ais-model-section .ais-upload-grid {
+        flex-direction: row;
+    }
+    
+    .ais-steps {
+        padding: 0 40px;
+    }
+    
+    .ais-step-label {
+        font-size: 12px;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .ais-frontend-app {
+        max-width: 900px;
+    }
+    
+    .ais-card {
+        padding: 28px;
+    }
+    
+    .ais-upload-box {
+        max-height: 200px;
+    }
+    
+    .ais-upload-box:hover {
+        border-color: var(--ais-primary);
+        background: #f5f3ff;
+    }
+    
+    .ais-pose-item:hover {
+        border-color: var(--ais-primary-light);
+        background: #f5f3ff;
+    }
+    
+    .ais-result-image {
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* Hide WordPress admin bar gap on mobile */
+@media (max-width: 600px) {
+    .ais-frontend-app {
+        padding-top: 12px;
+    }
+}
+
+/* Animation for card transitions */
+.ais-fade-in {
+    animation: aisFadeIn 0.3s ease;
+}
+
+@keyframes aisFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Progress bar for generation */
+.ais-progress {
+    height: 4px;
+    background: var(--ais-gray-200);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.ais-progress-bar {
+    height: 100%;
+    background: var(--ais-primary);
+    border-radius: 2px;
+    animation: aisProgress 2s ease-in-out infinite;
+}
+
+@keyframes aisProgress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
