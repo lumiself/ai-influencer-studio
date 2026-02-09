@@ -90,34 +90,73 @@
         );
     }
     
-    // Image Upload Component
+    // Image Upload Component - Direct device upload
     function ImageUpload({ label, value, onChange }) {
         const [preview, setPreview] = useState('');
+        const [uploading, setUploading] = useState(false);
+        const fileInputRef = wp.element.useRef(null);
         
         useEffect(() => {
-            if (value) {
-                wp.media.attachment(value).fetch().then(function(attachment) {
-                    setPreview(attachment.url);
-                });
-            } else {
+            // If value is set but no preview, try to fetch URL
+            if (value && !preview) {
+                // Value is now { id, url } or just id for backwards compat
+                if (typeof value === 'object' && value.url) {
+                    setPreview(value.url);
+                }
+            } else if (!value) {
                 setPreview('');
             }
         }, [value]);
         
-        const openMedia = () => {
-            const frame = wp.media({
-                title: label,
-                multiple: false,
-                library: { type: 'image' }
-            });
+        const handleClick = () => {
+            if (fileInputRef.current) {
+                fileInputRef.current.click();
+            }
+        };
+        
+        const handleFileChange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
             
-            frame.on('select', function() {
-                const attachment = frame.state().get('selection').first().toJSON();
-                onChange(attachment.id);
-                setPreview(attachment.url);
-            });
+            // Show local preview immediately
+            const localPreview = URL.createObjectURL(file);
+            setPreview(localPreview);
+            setUploading(true);
             
-            frame.open();
+            // Upload to WordPress
+            const formData = new FormData();
+            formData.append('action', 'ais_upload_image');
+            formData.append('nonce', data.nonce);
+            formData.append('image', file);
+            
+            try {
+                const response = await $.ajax({
+                    url: data.ajaxUrl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false
+                });
+                
+                if (response.success) {
+                    onChange({ id: response.data.id, url: response.data.url });
+                    setPreview(response.data.url);
+                } else {
+                    setPreview('');
+                    onChange(null);
+                    alert(response.data?.message || 'Upload failed');
+                }
+            } catch (err) {
+                setPreview('');
+                onChange(null);
+                alert(i18n.errorNetwork || 'Upload failed');
+            }
+            
+            setUploading(false);
+            // Reset input so same file can be selected again
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         };
         
         const remove = (e) => {
@@ -127,15 +166,25 @@
         };
         
         return el('div', { className: 'ais-upload-item' },
+            el('input', {
+                type: 'file',
+                accept: 'image/*',
+                ref: fileInputRef,
+                style: { display: 'none' },
+                onChange: handleFileChange
+            }),
             el('span', { className: 'ais-upload-label' }, label),
             el('div', { 
-                className: `ais-upload-box${preview ? ' has-image' : ''}`, 
-                onClick: openMedia 
+                className: `ais-upload-box${preview ? ' has-image' : ''}${uploading ? ' uploading' : ''}`, 
+                onClick: handleClick 
             },
                 preview 
                     ? el(Fragment, null,
                         el('img', { src: preview, alt: label }),
-                        el('button', { className: 'ais-upload-remove', onClick: remove }, icons.x)
+                        uploading && el('div', { className: 'ais-upload-overlay' },
+                            el('span', { className: 'ais-spinner' })
+                        ),
+                        !uploading && el('button', { className: 'ais-upload-remove', onClick: remove }, icons.x)
                     )
                     : el(Fragment, null,
                         icons.plus,
@@ -227,6 +276,9 @@
         );
     }
     
+    // Helper to extract ID from image value (object or primitive)
+    const getImageId = (value) => value?.id || value;
+    
     // Single Model Form
     function SingleModelForm() {
         const [identity, setIdentity] = useState(null);
@@ -269,8 +321,8 @@
                     data: {
                         action: 'ais_generate_poses',
                         nonce: data.nonce,
-                        background_id: background,
-                        outfit_id: outfit,
+                        background_id: getImageId(background),
+                        outfit_id: getImageId(outfit),
                         gender: gender,
                         pose_preset: posePreset
                     }
@@ -308,9 +360,9 @@
                         data: {
                             action: 'ais_synthesize_image_async',
                             nonce: data.nonce,
-                            identity_id: identity,
-                            outfit_id: outfit,
-                            background_id: background,
+                            identity_id: getImageId(identity),
+                            outfit_id: getImageId(outfit),
+                            background_id: getImageId(background),
                             pose_prompt: posePrompt
                         }
                     });
@@ -338,9 +390,9 @@
                         data: {
                             action: 'ais_synthesize_image',
                             nonce: data.nonce,
-                            identity_id: identity,
-                            outfit_id: outfit,
-                            background_id: background,
+                            identity_id: getImageId(identity),
+                            outfit_id: getImageId(outfit),
+                            background_id: getImageId(background),
                             pose_prompt: posePrompt
                         }
                     });
@@ -493,9 +545,9 @@
                     data: {
                         action: 'ais_generate_dual_poses',
                         nonce: data.nonce,
-                        background_id: background,
-                        outfit1_id: outfit1,
-                        outfit2_id: outfit2,
+                        background_id: getImageId(background),
+                        outfit1_id: getImageId(outfit1),
+                        outfit2_id: getImageId(outfit2),
                         gender_a: gender1,
                         gender_b: gender2,
                         pose_preset: posePreset
@@ -534,11 +586,11 @@
                         data: {
                             action: 'ais_synthesize_dual_image_async',
                             nonce: data.nonce,
-                            identity1_id: identity1,
-                            outfit1_id: outfit1,
-                            identity2_id: identity2,
-                            outfit2_id: outfit2,
-                            background_id: background,
+                            identity1_id: getImageId(identity1),
+                            outfit1_id: getImageId(outfit1),
+                            identity2_id: getImageId(identity2),
+                            outfit2_id: getImageId(outfit2),
+                            background_id: getImageId(background),
                             pose_prompt: posePrompt
                         }
                     });
@@ -567,11 +619,11 @@
                         data: {
                             action: 'ais_synthesize_dual_image',
                             nonce: data.nonce,
-                            identity1_id: identity1,
-                            outfit1_id: outfit1,
-                            identity2_id: identity2,
-                            outfit2_id: outfit2,
-                            background_id: background,
+                            identity1_id: getImageId(identity1),
+                            outfit1_id: getImageId(outfit1),
+                            identity2_id: getImageId(identity2),
+                            outfit2_id: getImageId(outfit2),
+                            background_id: getImageId(background),
                             pose_prompt: posePrompt
                         }
                     });

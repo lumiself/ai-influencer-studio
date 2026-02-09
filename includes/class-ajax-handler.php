@@ -24,6 +24,7 @@ class AIS_Ajax_Handler {
         add_action('wp_ajax_ais_synthesize_dual_image_async', [$this, 'synthesize_dual_image_async']);
         add_action('wp_ajax_ais_poll_prediction', [$this, 'poll_prediction']);
         add_action('wp_ajax_ais_save_to_media', [$this, 'save_to_media']);
+        add_action('wp_ajax_ais_upload_image', [$this, 'upload_image']);
     }
     
     /**
@@ -34,9 +35,51 @@ class AIS_Ajax_Handler {
             wp_send_json_error(['message' => __('Security check failed.', 'ai-influencer-studio')], 403);
         }
         
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can('upload_files')) {
             wp_send_json_error(['message' => __('Permission denied.', 'ai-influencer-studio')], 403);
         }
+    }
+    
+    /**
+     * Upload image from device
+     */
+    public function upload_image() {
+        $this->verify_request();
+        
+        if (empty($_FILES['image'])) {
+            wp_send_json_error(['message' => __('No image provided.', 'ai-influencer-studio')]);
+        }
+        
+        $file = $_FILES['image'];
+        
+        // Validate file type
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($file['type'], $allowed_types)) {
+            wp_send_json_error(['message' => __('Invalid file type. Please upload a JPG, PNG, GIF, or WebP image.', 'ai-influencer-studio')]);
+        }
+        
+        // Check file size (max 10MB)
+        $max_size = 10 * 1024 * 1024;
+        if ($file['size'] > $max_size) {
+            wp_send_json_error(['message' => __('File too large. Maximum size is 10MB.', 'ai-influencer-studio')]);
+        }
+        
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+        
+        $attachment_id = media_handle_upload('image', 0);
+        
+        if (is_wp_error($attachment_id)) {
+            wp_send_json_error(['message' => $attachment_id->get_error_message()]);
+        }
+        
+        $url = wp_get_attachment_url($attachment_id);
+        
+        wp_send_json_success([
+            'id' => $attachment_id,
+            'url' => $url
+        ]);
     }
     
     /**
