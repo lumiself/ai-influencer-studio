@@ -11,11 +11,17 @@ class AIS_Replicate_API {
     
     private $api_base = 'https://api.replicate.com/v1';
     private $choreographer_model = 'openai/gpt-5-nano';
-    private $synthesis_model = 'bytedance/seedream-4';
     private $predictions_handler;
     
     public function __construct($predictions_handler = null) {
         $this->predictions_handler = $predictions_handler;
+    }
+    
+    /**
+     * Get the configured synthesis model
+     */
+    private function get_synthesis_model() {
+        return get_option('ais_seedream_model', 'bytedance/seedream-4');
     }
     
     /**
@@ -276,7 +282,7 @@ class AIS_Replicate_API {
             ],
         ];
         
-        $result = $this->request_async('/models/' . $this->synthesis_model . '/predictions', $data, 'synthesis_single', $user_id);
+        $result = $this->request_async('/models/' . $this->get_synthesis_model() . '/predictions', $data, 'synthesis_single', $user_id);
         
         if (is_wp_error($result)) {
             return $result;
@@ -312,7 +318,7 @@ class AIS_Replicate_API {
             ],
         ];
         
-        $result = $this->request('/models/' . $this->synthesis_model . '/predictions', $data);
+        $result = $this->request('/models/' . $this->get_synthesis_model() . '/predictions', $data);
         
         if (is_wp_error($result)) {
             return $result;
@@ -342,7 +348,7 @@ class AIS_Replicate_API {
             ],
         ];
         
-        $result = $this->request_async('/models/' . $this->synthesis_model . '/predictions', $data, 'synthesis_dual', $user_id);
+        $result = $this->request_async('/models/' . $this->get_synthesis_model() . '/predictions', $data, 'synthesis_dual', $user_id);
         
         if (is_wp_error($result)) {
             return $result;
@@ -378,7 +384,7 @@ class AIS_Replicate_API {
             ],
         ];
         
-        $result = $this->request('/models/' . $this->synthesis_model . '/predictions', $data);
+        $result = $this->request('/models/' . $this->get_synthesis_model() . '/predictions', $data);
         
         if (is_wp_error($result)) {
             return $result;

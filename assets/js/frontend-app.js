@@ -188,23 +188,33 @@
         );
     }
     
+    // Auto-save image to media library (silent, no UI feedback)
+    const autoSaveToMedia = async (imageUrl) => {
+        try {
+            await $.ajax({
+                url: data.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'ais_save_to_media',
+                    nonce: data.nonce,
+                    image_url: imageUrl
+                }
+            });
+        } catch (err) {
+            // Silent fail - user can still download
+            console.log('Auto-save failed:', err);
+        }
+    };
+    
     // Result Component
-    function ResultDisplay({ imageUrl, onSave, saving, saved, onStartOver }) {
+    function ResultDisplay({ imageUrl, onStartOver }) {
         return el('div', { className: 'ais-result-container ais-fade-in' },
             el('div', { className: 'ais-result-image' },
                 el('img', { src: imageUrl, alt: 'Generated' })
             ),
             el('div', { className: 'ais-btn-row' },
-                el('button', { 
-                    className: `ais-btn ${saved ? 'ais-btn-success' : 'ais-btn-primary'}`,
-                    onClick: onSave,
-                    disabled: saving || saved
-                },
-                    saving && el('span', { className: 'ais-spinner' }),
-                    saved ? (i18n.saved || 'Saved!') : (saving ? (i18n.saving || 'Saving...') : (i18n.saveToLibrary || 'Save to Library'))
-                ),
                 el('a', { 
-                    className: 'ais-btn ais-btn-outline',
+                    className: 'ais-btn ais-btn-primary',
                     href: imageUrl,
                     target: '_blank',
                     download: 'ai-influencer-image.png'
@@ -229,8 +239,6 @@
         const [editedPose, setEditedPose] = useState('');
         const [loading, setLoading] = useState(false);
         const [generating, setGenerating] = useState(false);
-        const [saving, setSaving] = useState(false);
-        const [saved, setSaved] = useState(false);
         const [resultImage, setResultImage] = useState('');
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
@@ -339,6 +347,7 @@
                     
                     if (response.success) {
                         setResultImage(response.data.image_url);
+                        autoSaveToMedia(response.data.image_url);
                     } else {
                         setError(response.data.message || 'Failed to generate image.');
                     }
@@ -350,33 +359,6 @@
             }
         };
         
-        const saveToMedia = async () => {
-            setSaving(true);
-            setError('');
-            
-            try {
-                const response = await $.ajax({
-                    url: data.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'ais_save_to_media',
-                        nonce: data.nonce,
-                        image_url: resultImage
-                    }
-                });
-                
-                if (response.success) {
-                    setSaved(true);
-                } else {
-                    setError(response.data.message || 'Failed to save.');
-                }
-            } catch (err) {
-                setError(i18n.errorNetwork || 'Network error.');
-            }
-            
-            setSaving(false);
-        };
-        
         const startOver = () => {
             setIdentity(null);
             setOutfit(null);
@@ -385,7 +367,6 @@
             setSelectedPose(null);
             setEditedPose('');
             setResultImage('');
-            setSaved(false);
             setError('');
             setSuccess('');
         };
@@ -462,9 +443,6 @@
             resultImage && el('div', { className: 'ais-card' },
                 el(ResultDisplay, {
                     imageUrl: resultImage,
-                    onSave: saveToMedia,
-                    saving: saving,
-                    saved: saved,
                     onStartOver: startOver
                 })
             )
@@ -486,8 +464,6 @@
         const [editedPose, setEditedPose] = useState('');
         const [loading, setLoading] = useState(false);
         const [generating, setGenerating] = useState(false);
-        const [saving, setSaving] = useState(false);
-        const [saved, setSaved] = useState(false);
         const [resultImage, setResultImage] = useState('');
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
@@ -573,6 +549,7 @@
                             (imageUrl) => {
                                 setResultImage(imageUrl);
                                 setGenerating(false);
+                                autoSaveToMedia(imageUrl);
                             },
                             (errorMsg) => {
                                 setError(errorMsg);
@@ -601,6 +578,7 @@
                     
                     if (response.success) {
                         setResultImage(response.data.image_url);
+                        autoSaveToMedia(response.data.image_url);
                     } else {
                         setError(response.data.message || 'Failed to generate image.');
                     }
@@ -610,33 +588,6 @@
                 setError(i18n.errorNetwork || 'Network error.');
                 setGenerating(false);
             }
-        };
-        
-        const saveToMedia = async () => {
-            setSaving(true);
-            setError('');
-            
-            try {
-                const response = await $.ajax({
-                    url: data.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'ais_save_to_media',
-                        nonce: data.nonce,
-                        image_url: resultImage
-                    }
-                });
-                
-                if (response.success) {
-                    setSaved(true);
-                } else {
-                    setError(response.data.message || 'Failed to save.');
-                }
-            } catch (err) {
-                setError(i18n.errorNetwork || 'Network error.');
-            }
-            
-            setSaving(false);
         };
         
         const startOver = () => {
@@ -649,7 +600,6 @@
             setSelectedPose(null);
             setEditedPose('');
             setResultImage('');
-            setSaved(false);
             setError('');
             setSuccess('');
         };
@@ -745,9 +695,6 @@
             resultImage && el('div', { className: 'ais-card' },
                 el(ResultDisplay, {
                     imageUrl: resultImage,
-                    onSave: saveToMedia,
-                    saving: saving,
-                    saved: saved,
                     onStartOver: startOver
                 })
             )

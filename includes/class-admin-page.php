@@ -43,6 +43,22 @@ class AIS_Admin_Page {
             'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
         ]);
+        
+        register_setting('ais_settings', 'ais_seedream_model', [
+            'type' => 'string',
+            'default' => 'bytedance/seedream-4',
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+    }
+    
+    /**
+     * Get available Seedream models
+     */
+    public function get_seedream_models() {
+        return [
+            'bytedance/seedream-4' => 'Seedream 4 (Faster, lower cost)',
+            'bytedance/seedream-4.5' => 'Seedream 4.5 (Higher quality, 2K-4K)',
+        ];
     }
     
     public function render_admin_page() {
@@ -98,6 +114,32 @@ class AIS_Admin_Page {
                                     '<a href="https://replicate.com/account/api-tokens" target="_blank">Replicate</a>'
                                 ); 
                                 ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="ais_seedream_model">
+                                <?php esc_html_e('Image Generation Model', 'ai-influencer-studio'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <select 
+                                id="ais_seedream_model" 
+                                name="ais_seedream_model" 
+                                class="regular-text"
+                            >
+                                <?php 
+                                $current_model = get_option('ais_seedream_model', 'bytedance/seedream-4');
+                                foreach ($this->get_seedream_models() as $value => $label): 
+                                ?>
+                                    <option value="<?php echo esc_attr($value); ?>" <?php selected($current_model, $value); ?>>
+                                        <?php echo esc_html($label); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description">
+                                <?php esc_html_e('Seedream 4.5 offers higher quality but only supports 2K-4K resolution (no 1K).', 'ai-influencer-studio'); ?>
                             </p>
                         </td>
                     </tr>
