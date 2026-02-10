@@ -468,8 +468,8 @@
                 )
             ),
             
-            // Step 3: Pose Selection
-            poses.length > 0 && !resultImage && el('div', { className: 'ais-card ais-fade-in' },
+            // Step 3: Pose Selection (stays visible after result so user can try other poses)
+            poses.length > 0 && el('div', { className: 'ais-card ais-fade-in' },
                 el('h3', { className: 'ais-card-title' }, i18n.selectPose || 'Select a Pose'),
                 el(PoseSelector, {
                     poses: poses,
@@ -720,8 +720,8 @@
                 )
             ),
             
-            // Pose Selection
-            poses.length > 0 && !resultImage && el('div', { className: 'ais-card ais-fade-in' },
+            // Pose Selection (stays visible after result so user can try other poses)
+            poses.length > 0 && el('div', { className: 'ais-card ais-fade-in' },
                 el('h3', { className: 'ais-card-title' }, i18n.selectPose || 'Select a Pose'),
                 el(PoseSelector, {
                     poses: poses,
