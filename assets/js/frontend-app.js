@@ -5,6 +5,13 @@
     const data = window.aisFrontendData || {};
     const i18n = data.i18n || {};
     
+    // Debug: log the data object
+    console.log('aisFrontendData:', data);
+    
+    // Ensure required data has defaults
+    data.genderOptions = data.genderOptions || { female: 'Female', male: 'Male', nonbinary: 'Non-binary' };
+    data.posePresets = data.posePresets || { casual: 'Casual/Relaxed', editorial: 'Editorial/High Fashion' };
+    
     // SVG Icons
     const icons = {
         plus: el('svg', { className: 'ais-upload-icon', viewBox: '0 0 24 24', fill: 'none', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
@@ -130,6 +137,7 @@
             formData.append('image', file);
             
             try {
+                console.log('Uploading to:', data.ajaxUrl);
                 const response = await $.ajax({
                     url: data.ajaxUrl,
                     type: 'POST',
@@ -138,17 +146,21 @@
                     contentType: false
                 });
                 
+                console.log('Upload response:', response);
+                
                 if (response.success) {
                     onChange({ id: response.data.id, url: response.data.url });
                     setPreview(response.data.url);
                 } else {
                     setPreview('');
                     onChange(null);
+                    console.error('Upload failed:', response);
                     alert(response.data?.message || 'Upload failed');
                 }
             } catch (err) {
                 setPreview('');
                 onChange(null);
+                console.error('Upload error:', err);
                 alert(i18n.errorNetwork || 'Upload failed');
             }
             
@@ -196,6 +208,7 @@
     
     // Select Component
     function Select({ label, value, options, onChange }) {
+        const safeOptions = options || {};
         return el('div', { className: 'ais-form-group' },
             el('label', { className: 'ais-form-label' }, label),
             el('select', { 
@@ -203,7 +216,7 @@
                 value: value, 
                 onChange: (e) => onChange(e.target.value) 
             },
-                Object.entries(options).map(([val, text]) => 
+                Object.entries(safeOptions).map(([val, text]) => 
                     el('option', { key: val, value: val }, text)
                 )
             )
@@ -240,7 +253,8 @@
     // Auto-save image to media library (silent, no UI feedback)
     const autoSaveToMedia = async (imageUrl) => {
         try {
-            await $.ajax({
+            console.log('Auto-saving to media library:', imageUrl);
+            const result = await $.ajax({
                 url: data.ajaxUrl,
                 type: 'POST',
                 data: {
@@ -249,9 +263,29 @@
                     image_url: imageUrl
                 }
             });
+            console.log('Auto-save result:', result);
         } catch (err) {
             // Silent fail - user can still download
             console.log('Auto-save failed:', err);
+        }
+    };
+    
+    // Download handler for cross-origin images
+    const handleDownload = async (imageUrl) => {
+        try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'ai-influencer-image.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            // Fallback: open in new tab
+            window.open(imageUrl, '_blank');
         }
     };
     
@@ -262,11 +296,9 @@
                 el('img', { src: imageUrl, alt: 'Generated' })
             ),
             el('div', { className: 'ais-btn-row' },
-                el('a', { 
+                el('button', { 
                     className: 'ais-btn ais-btn-primary',
-                    href: imageUrl,
-                    target: '_blank',
-                    download: 'ai-influencer-image.png'
+                    onClick: () => handleDownload(imageUrl)
                 }, i18n.downloadImage || 'Download'),
                 el('button', { 
                     className: 'ais-btn ais-btn-secondary',

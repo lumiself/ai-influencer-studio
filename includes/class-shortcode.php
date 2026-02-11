@@ -76,8 +76,8 @@ class AIS_Shortcode {
         wp_enqueue_style('ais-frontend-style');
         wp_enqueue_script('ais-frontend-app');
         
-        // Localize script data
-        wp_localize_script('ais-frontend-app', 'aisFrontendData', [
+        // Prepare script data
+        $script_data = [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('ais_nonce'),
             'posePresets' => $this->get_pose_presets(),
@@ -87,10 +87,13 @@ class AIS_Shortcode {
             'defaultMode' => sanitize_text_field($atts['mode']),
             'showTabs' => $atts['show_tabs'] === 'true',
             'i18n' => $this->get_translations(),
-        ]);
+        ];
         
-        // Return the app container
-        return '<div id="ais-frontend-root" class="ais-frontend-app"></div>';
+        // Output data inline (since shortcode runs after wp_head)
+        $inline_script = 'window.aisFrontendData = ' . wp_json_encode($script_data) . ';';
+        
+        // Return the app container with inline script
+        return '<script>' . $inline_script . '</script><div id="ais-frontend-root" class="ais-frontend-app"></div>';
     }
     
     /**

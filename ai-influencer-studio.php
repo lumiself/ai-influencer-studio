@@ -112,13 +112,37 @@ add_action('plugins_loaded', function() {
     AI_Influencer_Studio::get_instance();
 });
 
+// Ensure subscriber role has upload_files capability (runs once per version)
+add_action('init', function() {
+    $cap_version = '1.0.1';
+    if (get_option('ais_subscriber_cap_version') === $cap_version) {
+        return;
+    }
+    $subscriber = get_role('subscriber');
+    if ($subscriber) {
+        $subscriber->add_cap('upload_files');
+    }
+    update_option('ais_subscriber_cap_version', $cap_version);
+});
+
 // Activation hook
 register_activation_hook(__FILE__, function() {
     add_option('ais_replicate_api_key', '');
     AIS_Predictions_Handler::create_table();
+    
+    // Grant upload_files capability to subscriber role for frontend usage
+    $subscriber = get_role('subscriber');
+    if ($subscriber && !$subscriber->has_cap('upload_files')) {
+        $subscriber->add_cap('upload_files');
+    }
 });
 
 // Deactivation hook
 register_deactivation_hook(__FILE__, function() {
-    // Cleanup if needed
+    // Remove upload_files capability from subscriber role
+    $subscriber = get_role('subscriber');
+    if ($subscriber && $subscriber->has_cap('upload_files')) {
+        $subscriber->remove_cap('upload_files');
+    }
+    delete_option('ais_subscriber_cap_version');
 });
