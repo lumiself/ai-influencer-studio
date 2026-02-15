@@ -83,6 +83,18 @@ class AI_Influencer_Studio {
             'asyncMode' => true, // Use async mode for shared hosting compatibility
             'pollInterval' => 3000, // Poll every 3 seconds
         ]);
+        
+        // Add headers to support blob downloads on mobile devices
+        add_action('admin_head', [$this, 'add_mobile_download_headers']);
+    }
+    
+    public function add_mobile_download_headers() {
+        echo '<script>
+            // Ensure blob URLs work on mobile browsers
+            if (typeof window.URL === "undefined" && typeof window.webkitURL !== "undefined") {
+                window.URL = window.webkitURL;
+            }
+        </script>';
     }
     
     private function get_pose_presets() {

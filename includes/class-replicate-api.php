@@ -339,10 +339,10 @@ class AIS_Replicate_API {
                 'prompt' => $full_prompt,
                 'image_input' => [$id1_url, $outfit1_url, $id2_url, $outfit2_url, $background_url],
                 'size' => '4K',
-                'width' => 2048,
-                'height' => 2048,
+                'width' => 3520,
+                'height' => 4704,
                 'max_images' => 1,
-                'aspect_ratio' => '4:3',
+                'aspect_ratio' => '3:4',
                 'enhance_prompt' => true,
                 'sequential_image_generation' => 'disabled',
             ],
@@ -375,10 +375,10 @@ class AIS_Replicate_API {
                 'prompt' => $full_prompt,
                 'image_input' => [$id1_url, $outfit1_url, $id2_url, $outfit2_url, $background_url],
                 'size' => '4K',
-                'width' => 2048,
-                'height' => 2048,
+                'width' => 3520,
+                'height' => 4704,
                 'max_images' => 1,
-                'aspect_ratio' => '4:3',
+                'aspect_ratio' => '3:4',
                 'enhance_prompt' => true,
                 'sequential_image_generation' => 'disabled',
             ],
@@ -432,7 +432,8 @@ Constraints:
 Example output format:
 [
   \"The {$gender} model from [Image 1] in the [Image 2] outfit is leaning against the brick wall with one hand in pocket in [Image 3]; 85mm lens.\",
-  \"The {$gender} model from [Image 1] in the [Image 2] outfit is walking confidently down the steps in [Image 3]; 85mm lens.\"
+  \"The {$gender} model from [Image 1] in the [Image 2] outfit is walking confidently down the steps in [Image 3]; 85mm lens.\",
+  \"The {$gender} model from [Image 1] in the [Image 2] outfit is sitting on the ground in [Image 3]; 85mm lens.\"
 ]";
     }
     

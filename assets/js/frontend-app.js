@@ -270,22 +270,45 @@
         }
     };
     
-    // Download handler for cross-origin images
+    // Download handler for cross-origin images (mobile-friendly)
     const handleDownload = async (imageUrl) => {
         try {
-            const response = await fetch(imageUrl);
+            // First try to fetch with mode: 'cors' to handle cross-origin properly
+            const response = await fetch(imageUrl, { 
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const blob = await response.blob();
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = blobUrl;
-            link.download = 'ai-influencer-image.png';
+            link.download = 'ai-influencer-image-' + Date.now() + '.png';
+            link.style.display = 'none'; // Hide the link
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(blobUrl);
+            
+            // Cleanup blob URL after a short delay to ensure download starts
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
         } catch (error) {
-            // Fallback: open in new tab
-            window.open(imageUrl, '_blank');
+            console.warn('Download failed, trying fallback:', error);
+            // Fallback: try opening in new tab
+            try {
+                window.open(imageUrl, '_blank', 'noopener,noreferrer');
+            } catch (fallbackError) {
+                // Last resort: copy URL to clipboard and show message
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(imageUrl);
+                    alert('Download failed. Image URL copied to clipboard. You can paste it in your browser to download manually.');
+                } else {
+                    alert('Download failed. Please right-click the image and select "Save Image As" to download manually.');
+                }
+            }
         }
     };
     
@@ -405,6 +428,7 @@
                             (imageUrl) => {
                                 setResultImage(imageUrl);
                                 setGenerating(false);
+                                autoSaveToMedia(imageUrl);
                             },
                             (errorMsg) => {
                                 setError(errorMsg);

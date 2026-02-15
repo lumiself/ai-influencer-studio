@@ -4,6 +4,71 @@
     const { createElement: el, useState, useEffect, useRef, Fragment } = wp.element;
     const { Button, SelectControl, Spinner, Notice, TextareaControl, TabPanel } = wp.components;
     
+    // Auto-save image to media library
+    const autoSaveToMedia = async (imageUrl, onSuccess, onError) => {
+        try {
+            const response = await $.ajax({
+                url: aisData.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'ais_save_to_media',
+                    nonce: aisData.nonce,
+                    image_url: imageUrl
+                }
+            });
+            
+            if (response.success) {
+                if (onSuccess) onSuccess(response.data);
+            } else {
+                if (onError) onError(response.data?.message || 'Failed to save.');
+            }
+        } catch (err) {
+            if (onError) onError('Network error saving image.');
+        }
+    };
+
+    // Download handler for cross-origin images (mobile-friendly)
+    const handleDownload = async (imageUrl) => {
+        try {
+            // First try to fetch with mode: 'cors' to handle cross-origin properly
+            const response = await fetch(imageUrl, { 
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'ai-influencer-image-' + Date.now() + '.png';
+            link.style.display = 'none'; // Hide the link
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Cleanup blob URL after a short delay to ensure download starts
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        } catch (error) {
+            console.warn('Download failed, trying fallback:', error);
+            // Fallback: try opening in new tab
+            try {
+                window.open(imageUrl, '_blank', 'noopener,noreferrer');
+            } catch (fallbackError) {
+                // Last resort: copy URL to clipboard and show message
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(imageUrl);
+                    alert('Download failed. Image URL copied to clipboard. You can paste it in your browser to download manually.');
+                } else {
+                    alert('Download failed. Please right-click the image and select "Save Image As" to download manually.');
+                }
+            }
+        }
+    };
+
     // Polling helper function
     const pollPrediction = (predictionId, onSuccess, onError, onProgress) => {
         const pollInterval = aisData.pollInterval || 3000;
@@ -127,23 +192,22 @@
     }
     
     // Result Display Component
-    function ResultDisplay({ imageUrl, onSave, saving }) {
+    function ResultDisplay({ imageUrl, saved, saveError }) {
         return el('div', { className: 'ais-result' },
             el('h3', null, 'Generated Image'),
             el('div', { className: 'ais-result-image' },
                 el('img', { src: imageUrl, alt: 'Generated result' })
             ),
             el('div', { className: 'ais-result-actions' },
-                el(Button, { 
-                    isPrimary: true, 
-                    onClick: onSave,
-                    disabled: saving
-                }, saving ? el(Spinner) : 'Save to Media Library'),
+                saved 
+                    ? el(Button, { isSecondary: true, disabled: true }, '\u2713 Saved to Media Library')
+                    : saveError
+                        ? el(Button, { isDestructive: true, disabled: true }, 'Save failed: ' + saveError)
+                        : el(Button, { isSecondary: true, disabled: true }, el(Spinner), ' Saving to Media Library...'),
                 el(Button, {
                     isSecondary: true,
-                    href: imageUrl,
-                    target: '_blank'
-                }, 'Open Full Size')
+                    onClick: () => handleDownload(imageUrl)
+                }, 'Download Image')
             )
         );
     }
@@ -160,10 +224,27 @@
         const [editedPose, setEditedPose] = useState('');
         const [loading, setLoading] = useState(false);
         const [generating, setGenerating] = useState(false);
-        const [saving, setSaving] = useState(false);
         const [resultImage, setResultImage] = useState('');
+        const [saved, setSaved] = useState(false);
+        const [saveError, setSaveError] = useState('');
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
+        
+        // Auto-save whenever a new result image arrives
+        useEffect(() => {
+            if (resultImage) {
+                setSaved(false);
+                setSaveError('');
+                autoSaveToMedia(
+                    resultImage,
+                    () => {
+                        setSaved(true);
+                        setSuccess('Image saved to Media Library!');
+                    },
+                    (errMsg) => setSaveError(errMsg)
+                );
+            }
+        }, [resultImage]);
         
         const generatePoses = async () => {
             if (!background) {
@@ -277,33 +358,6 @@
             }
         };
         
-        const saveToMedia = async () => {
-            setSaving(true);
-            setError('');
-            
-            try {
-                const response = await $.ajax({
-                    url: aisData.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'ais_save_to_media',
-                        nonce: aisData.nonce,
-                        image_url: resultImage
-                    }
-                });
-                
-                if (response.success) {
-                    setSuccess('Image saved to Media Library!');
-                } else {
-                    setError(response.data.message || 'Failed to save image.');
-                }
-            } catch (err) {
-                setError('Network error. Please try again.');
-            }
-            
-            setSaving(false);
-        };
-        
         return el('div', { className: 'ais-single-model-form' },
             error && el(Notice, { status: 'error', isDismissible: true, onRemove: () => setError('') }, error),
             success && el(Notice, { status: 'success', isDismissible: true, onRemove: () => setSuccess('') }, success),
@@ -358,8 +412,8 @@
             resultImage && el('div', { className: 'ais-form-section' },
                 el(ResultDisplay, {
                     imageUrl: resultImage,
-                    onSave: saveToMedia,
-                    saving: saving
+                    saved: saved,
+                    saveError: saveError
                 })
             )
         );
@@ -380,10 +434,27 @@
         const [editedPose, setEditedPose] = useState('');
         const [loading, setLoading] = useState(false);
         const [generating, setGenerating] = useState(false);
-        const [saving, setSaving] = useState(false);
         const [resultImage, setResultImage] = useState('');
+        const [saved, setSaved] = useState(false);
+        const [saveError, setSaveError] = useState('');
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
+        
+        // Auto-save whenever a new result image arrives
+        useEffect(() => {
+            if (resultImage) {
+                setSaved(false);
+                setSaveError('');
+                autoSaveToMedia(
+                    resultImage,
+                    () => {
+                        setSaved(true);
+                        setSuccess('Image saved to Media Library!');
+                    },
+                    (errMsg) => setSaveError(errMsg)
+                );
+            }
+        }, [resultImage]);
         
         const generatePoses = async () => {
             if (!background) {
@@ -503,33 +574,6 @@
             }
         };
         
-        const saveToMedia = async () => {
-            setSaving(true);
-            setError('');
-            
-            try {
-                const response = await $.ajax({
-                    url: aisData.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'ais_save_to_media',
-                        nonce: aisData.nonce,
-                        image_url: resultImage
-                    }
-                });
-                
-                if (response.success) {
-                    setSuccess('Image saved to Media Library!');
-                } else {
-                    setError(response.data.message || 'Failed to save image.');
-                }
-            } catch (err) {
-                setError('Network error. Please try again.');
-            }
-            
-            setSaving(false);
-        };
-        
         return el('div', { className: 'ais-dual-model-form' },
             error && el(Notice, { status: 'error', isDismissible: true, onRemove: () => setError('') }, error),
             success && el(Notice, { status: 'success', isDismissible: true, onRemove: () => setSuccess('') }, success),
@@ -598,8 +642,8 @@
             resultImage && el('div', { className: 'ais-form-section' },
                 el(ResultDisplay, {
                     imageUrl: resultImage,
-                    onSave: saveToMedia,
-                    saving: saving
+                    saved: saved,
+                    saveError: saveError
                 })
             )
         );
